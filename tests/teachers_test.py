@@ -173,3 +173,29 @@ def test_grade_assignment_missing_grade(client, h_teacher_1):
     data = response.json
     assert data['error'] == 'ValidationError'
 
+def test_grade_assignment(client):
+    """
+    Grade an assignment submitted to a teacher
+    """
+    headers = {
+        "X-Principal": '{"user_id":3, "teacher_id":1}'
+    }
+
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=headers,
+        json={
+            "id": 1,
+            "grade": "A"
+        }
+    )
+    
+    assert response.status_code == 200
+    data = response.json['data']
+
+    assert data['id'] == 1
+    assert data['grade'] == 'A'
+    assert data['state'] == 'GRADED'
+    assert data['teacher_id'] == 1
+    assert data['student_id'] == 1
+    assert data['content'] == 'ESSAY T1'
