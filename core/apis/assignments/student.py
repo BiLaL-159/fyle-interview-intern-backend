@@ -3,6 +3,8 @@ from core import db
 from core.apis import decorators
 from core.apis.responses import APIResponse
 from core.models.assignments import Assignment
+from core.models.assignments import AssignmentStateEnum
+from core.libs import assertions
 
 from .schema import AssignmentSchema, AssignmentSubmitSchema
 student_assignments_resources = Blueprint('student_assignments_resources', __name__)
@@ -21,14 +23,18 @@ def list_assignments(p):
 @decorators.accept_payload
 @decorators.authenticate_principal
 def upsert_assignment(p, incoming_payload):
-    """Create or Edit an assignment"""
-    assignment = AssignmentSchema().load(incoming_payload)
-    assignment.student_id = p.student_id
+     """Create or Edit an assignment"""
+     assignment = AssignmentSchema().load(incoming_payload)
+     assignment.student_id = p.student_id
 
-    upserted_assignment = Assignment.upsert(assignment)
-    db.session.commit()
-    upserted_assignment_dump = AssignmentSchema().dump(upserted_assignment)
-    return APIResponse.respond(data=upserted_assignment_dump)
+    #Ensure content is not null
+     
+     assertions.assert_valid(assignment.content, "Content cannot be null")
+
+     upserted_assignment = Assignment.upsert(assignment)
+     db.session.commit()
+     upserted_assignment_dump = AssignmentSchema().dump(upserted_assignment)
+     return APIResponse.respond(data=upserted_assignment_dump)
 
 
 @student_assignments_resources.route('/assignments/submit', methods=['POST'], strict_slashes=False)
@@ -37,6 +43,13 @@ def upsert_assignment(p, incoming_payload):
 def submit_assignment(p, incoming_payload):
     """Submit an assignment"""
     submit_assignment_payload = AssignmentSubmitSchema().load(incoming_payload)
+
+    assignment = Assignment.get_by_id(submit_assignment_payload.id)
+
+    # Ensure the assignment is in DRAFT state before submitting
+    assertions.assert_valid(assignment.state == AssignmentStateEnum.DRAFT, "only a draft assignment can be submitted")
+
+
 
     submitted_assignment = Assignment.submit(
         _id=submit_assignment_payload.id,
