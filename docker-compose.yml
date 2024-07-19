@@ -1,0 +1,25 @@
+version: '3'
+services:
+  web:
+    build: .
+    command: bash run.sh
+    ports:
+      - "8080:7755"
+    depends_on:
+      - db
+    environment:
+      FLASK_APP: core/server.py
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://admin:dzsVBMqoJu67@ep-dark-recipe-a529z1o9.us-east-2.aws.neon.tech/testdb?sslmode=require
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
