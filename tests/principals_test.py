@@ -111,80 +111,64 @@ def test_grade_assignment_with_empty_grade(client, h_principal):
     assert response.status_code == 400
     assert response.json['error'] == 'ValidationError'
 
-# def test_list_assignments_no_auth(client):
-#     """
-#     failure case: Attempting to list assignments without authentication
-#     """
-#     response = client.get('/principal/assignments')
-#     assert response.status_code == 401
 
-# def test_list_all_teachers(client, h_principal):
-#     """
-#     success case: Principal can list all teachers
-#     """
-#     response = client.get('/principal/teachers', headers=h_principal)
-#     assert response.status_code == 200
+#Adding new tests
+def test_list_teachers(client, h_principal):
+    """
+    Test case for listing all teachers as a principal
+    """
+    response = client.get(
+        '/principal/teachers',
+        headers=h_principal
+    )
 
-# def test_list_all_teachers(client, h_principal):
-#     """
-#     success case: Principal can list all teachers
-#     """
-#     response = client.get('/principal/teachers', headers=h_principal)
-#     assert response.status_code == 200
-#     data = response.json['data']
-    
+    print(response.status_code)
+    print(response.data)
 
- 
-# def test_list_teachers_no_auth(client):
-#     """
-#     failure case: Attempting to list teachers without authentication
-#     """
-#     response = client.get('/principal/teachers')
-#     assert response.status_code == 401
+    assert response.status_code == 200
+
+    data = response.json['data']
+    assert isinstance(data, list)
+    for teacher in data:
+        assert 'id' in teacher
+        assert 'created_at' in teacher
+        assert 'updated_at' in teacher
+        assert 'user_id' in teacher
 
 
-# def test_list_teachers_as_teacher(client, h_teacher_1):
-#     """
-#     failure case: A teacher should not be able to list all teachers
-#     """
-#     response = client.get('/principal/teachers', headers=h_teacher_1)
-#     assert response.status_code == 403
-#     data = response.json
-#     assert data['error'] == 'FyleError'
+def test_get_teachers_non_principal(client, h_student_1):
+    """
+    Test failure case: User is not a principal
+    """
+    response = client.get(
+        '/principal/teachers',
+        headers=h_student_1
+    )
+
+    assert response.status_code == 403
+    assert response.json['message'] == 'requester should be a principal'
+
+def test_get_teachers_as_student(client, h_student_1):
+    """
+    Test failure case: User is a student
+    """
+    response = client.get(
+        '/principal/teachers',
+        headers=h_student_1
+    )
+
+    assert response.status_code == 403
+    assert response.json['message'] == 'requester should be a principal'
 
 
-# def test_list_teachers_as_teacher(client, h_teacher_1):
-#     """
-#     failure case: A teacher should not be able to list all teachers
-#     """
-#     response = client.get('/principal/teachers', headers=h_teacher_1)
-#     assert response.status_code == 403
-#     data = response.json
-#     assert data['error'] == 'Unauthorized access'
+def test_get_teachers_as_teacher(client, h_teacher_1):
+    """
+    Test failure case: User is a teacher
+    """
+    response = client.get(
+        '/principal/teachers',
+        headers=h_teacher_1
+    )
 
-
-# def test_list_teachers_as_student(client, h_student_1):
-#     """
-#     failure case: A student should not be able to list all teachers
-#     """
-#     response = client.get('/principal/teachers', headers=h_student_1)
-#     assert response.status_code == 403
-#     data = response.json
-#     assert data['error'] == 'FyleError'
-
-# def test_list_teachers_as_student(client, h_student_1):
-#     """
-#     failure case: A student should not be able to list all teachers
-#     """
-#     response = client.get('/principal/teachers', headers=h_student_1)
-#     assert response.status_code == 403
-#     data = response.json
-#     assert data['error'] == 'Unauthorized access'
-
-######
-
-
-
-
-
-
+    assert response.status_code == 403
+    assert response.json['message'] == 'requester should be a principal'
