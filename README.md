@@ -56,3 +56,17 @@ pytest -vvv -s tests/
 # pytest --cov
 # open htmlcov/index.html
 ```
+## Deploying the app using Docker
+Build the docker image
+```
+docker-compose build
+```
+
+Start your containers
+```
+docker-compose build
+```
+Access your application at
+```
+http://localhost:8080
+```
